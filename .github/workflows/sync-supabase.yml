@@ -38,8 +38,8 @@ jobs:
       - name: Replace image names
         run: |
           # 替换所有 supabase/ 镜像为腾讯云镜像
-          find . -name "*.yml" -type f -exec sed -i 's|image: supabase/|image: hkccr.ccs.tencentyun.com/lyjp/supabase-|g' {} +
-          find . -name "*.yaml" -type f -exec sed -i 's|image: supabase/|image: hkccr.ccs.tencentyun.com/lyjp/supabase-|g' {} +
+          find . -name "*.yml" -type f -exec sed -i 's|image: hkccr.ccs.tencentyun.com/lyjp/supabase-|image: hkccr.ccs.tencentyun.com/lyjp/supabase-|g' {} +
+          find . -name "*.yaml" -type f -exec sed -i 's|image: hkccr.ccs.tencentyun.com/lyjp/supabase-|image: hkccr.ccs.tencentyun.com/lyjp/supabase-|g' {} +
           
           echo "Image names replaced successfully"
 
