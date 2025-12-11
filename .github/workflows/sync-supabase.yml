@@ -50,6 +50,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+          git remote set-url origin https://${{ secrets.PAT }}@github.com/${{ github.repository }}
           git add .
           git commit -m "chore: sync supabase docker files and replace images ($(date +'%Y-%m-%d'))"
           git push
