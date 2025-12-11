@@ -1,0 +1,59 @@
+name: Sync Supabase Docker
+
+on:
+  schedule:
+    # 每天 UTC 时间 00:00 运行
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Clone supabase repository
+        run: |
+          git clone --depth 1 https://github.com/supabase/supabase.git /tmp/supabase
+
+      - name: Copy docker files to root directory
+        run: |
+          # 复制 docker 文件夹下的所有文件到根目录
+          if [ -d "/tmp/supabase/docker" ]; then
+            rsync -av --exclude='.git' /tmp/supabase/docker/ ./
+            echo "Docker files copied successfully"
+          else
+            echo "Error: /tmp/supabase/docker directory not found"
+            exit 1
+          fi
+
+      - name: Replace image names
+        run: |
+          # 替换所有 supabase/ 镜像为腾讯云镜像
+          find . -name "*.yml" -type f -exec sed -i 's|image: supabase/|image: hkccr.ccs.tencentyun.com/lyjp/supabase-|g' {} +
+          find . -name "*.yaml" -type f -exec sed -i 's|image: supabase/|image: hkccr.ccs.tencentyun.com/lyjp/supabase-|g' {} +
+          
+          echo "Image names replaced successfully"
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          git diff --quiet || echo "has_changes=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push changes
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -m "chore: sync supabase docker files and replace images ($(date +'%Y-%m-%d'))"
+          git push
+
+      - name: No changes detected
+        if: steps.check_changes.outputs.has_changes != 'true'
+        run: echo "No changes detected, skipping commit"
